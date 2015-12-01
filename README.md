@@ -1,1 +1,2 @@
-# fantasy-football-ml
+# Machine Learning for Fantasy Football
+
