@@ -1,0 +1,116 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{cite}
+\usepackage{url}
+\usepackage{enumerate}
+\pagestyle{empty}
+
+\textwidth=6.5in
+\oddsidemargin=0in
+\evensidemargin=0in
+
+\author{Alex Wood and Garrett Johnston}
+\title {CS260: Project Proposal}
+
+\begin{document}
+\maketitle
+
+\section{Motivation}
+NFL Fantasy Football has become a national sensation in the community of sports gambling and betting.  With one-week fantasy sites like FanDuel and DraftKings cashing out millions of dollars in winnings per week, it is economically valuable to predict the outcome of individual players’ statistics in a game. It is also an interesting challenge to create mathematical models of human strategy and physical ability, as well as attempt to overcome the seemingly inherent randomness of the sport.
+
+\section{Background}	
+There are expert analysts and machine learning techniques that have been developed that attempt to predict the outcome of games \cite{Cornell}. There are also attempts to predict fantasy scores using machine learning \cite{UMASS}. While these approaches have proven to be successful, our proposed project will attempt to discover a number of different features than those used in the previous work. We include fine grain teammate statistics, as well as the opponent team’s average defensive statistics.
+
+\section{Proposed Work}
+We propose to predict fantasy scores (a single number roughly from 0 - 50) for a single player position on a team, which we assert to be more indicative of individual player performance than game outcomes. We plan to compare our models with existing popular predictions, as well as identify specific features that are useful in affecting our predictions of player performance. We believe our set of features will directly correlate with fantasy performance, and be a better predictor than many existing fantasy football models. We will try a variety of supervised learning algorithms to train our models, including SVM and neural nets, and report the success of each.
+
+\section{Timeline}
+\begin{enumerate}[Week 1:]
+  \item
+  We will develop a crawler for pro-football-reference.com and extract all NFL player data per game from 2013-2015. From this data, we will manually select a simple, initial set of features to be used to begin training models.
+  \item
+  We will begin to train various models, such as neural networks, support vector machines, and naive bayesian networks, and evaluate them by cross-validation to tune their hyperparameters.
+  \item
+  Based on the success of the features used to train the initial models, we will introduce more complex features and execute feature selection, while continuing to tune the models.
+  \item
+  Finally, the resulting models trained by the most promising features will be evaluated against test data and their performance will be assessed in different contexts. We will record these results and complete a report of the findings.
+\end{enumerate}
+
+\section{Deliverables/Evaluation}
+We can evaluate the average squared error difference between our predictions and fantasy scores from past games via cross-validation, as well as attempt to predict future scores of the current season. Additionally, there is a plethora of expert fantasy predictions that we will compare our predictions to, namely NFL.com fantasy, Yahoo fantasy, CBS fantasy, and FFtoday.com. It may also be worthwhile to compare the average success of models trained for different player positions, as well as the comparison of success in different contexts, such as a comparison of predictions for players that play frequently versus players that do not.
+
+\section{Data}
+The data needed to construct our feature set can be found from the following websites for free:
+\begin{itemize}
+\item
+http://www.pro-football-reference.com
+\item
+http://www.footballdb.com
+\end{itemize}
+
+Our initial data points will include various statistics derived from past games played by players in both teams lineups, and the labels will be the fantasy scores, which are computed by various data of the current game, using standard NFL fantasy scoring. By training a new model for each position, we should be able to separately predict the fantasy points for Quarterbacks, Running Backs, and Wide Receivers.
+
+The following are a set of example features that we predict will have some correlation to the fantasy score a given player gets:
+\begin{itemize}
+\item
+Player in starting lineup or not
+\item
+Player average snap count per game
+\item
+Quarterback pass yards per game
+\item
+Quarterback touchdowns per game
+\item
+Running Back rush yards per game
+\item
+Running Back rush touchdowns per game
+\item
+Running Back receiving yards per game
+\item
+Running Back receiving touchdowns per game
+\item
+Wide Receiver receiving yards per game
+\item
+Wide Receiver receiving touchdowns per game
+\item
+Opponent pass yards allowed per game
+\item
+Opponent rush yards allowed per game
+\item
+Opponent receiving yards allowed per game
+\item
+Opponent pass touchdowns allowed per game
+\item
+Opponent rush touchdowns allowed per game
+\item
+Opponent interceptions per game
+\item
+Opponent sacks per game
+\item
+Opponent defensive rank
+\end{itemize}
+
+These features will be the averages for all games before the current one. For the first game of the year, the previous year’s averages will be used.
+
+This data is interesting because it takes into account the teammate’s of a player we are trying to predict, in addition to the opponent’s defensive stats. We believe these will provide more insight into a predictive model of player fantasy performance.
+
+\section{Software Tools/Libraries}
+We plan to use Python, since it allows for a variety of libraries that will be useful for this project, such as web crawlers and the popular scikit-learn library. 
+
+\section{Team}
+The team for this project consists of two members: Garrett Johnston and Alex Wood.
+
+\section{Prior Discussion}
+We have discussed our proposed project with teaching assistant Amogh Param on Wednesday, 11/4.
+
+\begin{thebibliography}{1}
+
+\bibitem{Cornell}
+  Jim Warner,
+  \emph{},
+  \bibitem{UMASS}
+  Roman Lutz,
+  \emph{Fantasy Football Prediction},
+  \url{http://www.cs.cornell.edu/courses/cs6780/2010fa/projects/warner}
+\end{thebibliography}
+\bibliographystyle{plain}
+\end{document}
