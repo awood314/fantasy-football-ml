@@ -5,7 +5,7 @@ import requests
 __author__ = 'Garrett Johnston'
 
 client = MongoClient()
-db = client.espnProjections
+db = client.football
 
 baseURL = 'https://web.archive.org/web/20140905214405/http://games.espn.go.com/ffl/tools/projections?'
 
@@ -47,10 +47,11 @@ for weekNum in range(1, 18):
         print(len(teams), teams)
 
         for playerName, team, projection in zip(playerNames, teams, projections):
-            db['week' + str(weekNum)].insert_one(
+            db['espnProjections'].insert_one(
                 {
-                    "name": playerNames[i],
-                    "team": teams[i],
-                    "projectedPoints": projections[i]
+                    "name": playerName,
+                    "team": team,
+                    "week": weekNum,
+                    "projectedPoints": projection
                 }
             )
