@@ -9,21 +9,21 @@ def scrape_boxscore(boxscore_url, db):
     # Mongo collections
     playersClt = db['players']
 
-    # Get team names
+    # Game Data
     page = requests.get(boxscore_url)
     tree = html.fromstring(page.content)
-    teams = tree.xpath('//a[@href="#top"]/text()')[0].split(' @ ')
-
-    # Game data
+    week = tree.xpath('//td[contains(text(),"Week")]/text()')
+    teams = tree.xpath('//table[@id="linescore"]//a/text()')
     game_data = {
-        "game_id" : boxscore_url.split('boxscores/')[1],
-        "away_team": teams[0],
-        "home_team": teams[1]
+        "boxscore_url" : boxscore_url,
+        "week"         : 21 if not week else int(week[0].split('Week ')[1]),
+        "away_team"    : teams[0],
+        "home_team"    : teams[1]
         }
 
-
+    # Player data
     for i in range(0,2):
-        snapcount_row = tree.xpath('//div[div/h2/text()="' + teams[i] + ' Snap Counts"]/div/table/tbody/tr')
+        snapcount_row = tree.xpath('//div[div/h2/text()="' + teams[i].split(" ")[1] + ' Snap Counts"]/div/table/tbody/tr')
         players = []
         for row in snapcount_row:
             cols = row.xpath('td')
