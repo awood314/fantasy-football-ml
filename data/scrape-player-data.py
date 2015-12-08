@@ -1,12 +1,14 @@
-#/usr/bin/python27
-# Crawls NFL player data for all games in a specified year
+#!/usr/bin/python3.4
+# Scrapes NFL player data from pro-football-reference.com for all games in a specified year
 import sys
 import requests
 from lxml import html
 from pymongo import MongoClient
 
-def scrape_boxscore(boxscore_url, db):
-    # Mongo collections
+def scrape_boxscore(boxscore_url):
+    # Mongodb connection
+    conn = MongoClient()
+    db = conn['football']
     playersClt = db['players']
 
     # Game Data
@@ -35,7 +37,6 @@ def scrape_boxscore(boxscore_url, db):
                 player_stats.update(game_data)
                 player_stats.update({"snapcount": off_snapcount})
                 playersClt.update({"name": name, "position": position, "team": teams[i]}, {'$push': {'games': player_stats}}, True)
-
 
 def scrape_player_stats(name, tree):
     # Offsensive stats
@@ -72,12 +73,8 @@ def scrape_player_stats(name, tree):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("usage: scrape.py <year>")
+        print("usage: scrape-player-data.py <year>")
     
-    # Mongodb connection
-    conn = MongoClient()
-    db = conn['football']
-
     # Get the boxscore Urls for specified year
     year = sys.argv[1]
     site = 'http://www.pro-football-reference.com'
@@ -86,5 +83,6 @@ if __name__ == "__main__":
     boxscore_urls = tree.xpath('//a[text()="boxscore"]/@href')
 
     # Scrape data for each game
-    #for boxscore_url in boxscore_urls:
-    scrape_boxscore(site + boxscore_urls[0], db)
+    for boxscore_url in boxscore_urls:
+        print("Scraping boxscore:", boxscore_url)
+        scrape_boxscore(site + boxscore_url)
