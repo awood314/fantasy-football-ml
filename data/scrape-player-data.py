@@ -29,7 +29,12 @@ def scrape_boxscore(boxscore_url):
         snapcount_row = tree.xpath('//div[div/h2/text()="' + teams[i].split(" ")[-1] + ' Snap Counts"]/div/table/tbody/tr')
         for row in snapcount_row:
             cols = row.xpath('td')
-            name = cols[0].xpath('a')[0].text
+            name = cols[0].xpath('a/text()')
+	    # Apparently there is a guy with no name
+            if not name:
+                continue
+            else:
+                name = name[0]
             position = cols[1].text
             off_snapcount = cols[2].text
             if int(off_snapcount) > 0:
@@ -37,6 +42,7 @@ def scrape_boxscore(boxscore_url):
                 player_stats.update(game_data)
                 player_stats.update({"snapcount": off_snapcount})
                 playersClt.update({"name": name, "position": position, "team": teams[i]}, {'$push': {'games': player_stats}}, True)
+
 
 def scrape_player_stats(name, tree):
     # Offsensive stats
