@@ -146,4 +146,4 @@ if __name__ == "__main__":
         for feature in features:
             qb_file.write(feature + "\n")
                 
-
+    qb_file.close()
