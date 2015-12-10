@@ -5,7 +5,7 @@ import requests
 from lxml import html
 from pymongo import MongoClient
 
-def scrape_boxscore(boxscore_url):
+def scrape_boxscore(boxscore_url, week_num):
     # Mongodb connection
     conn = MongoClient()
     db = conn['football']
@@ -14,11 +14,10 @@ def scrape_boxscore(boxscore_url):
     # Game Data
     page = requests.get(boxscore_url)
     tree = html.fromstring(page.content)
-    week = tree.xpath('//td[contains(text(),"Week")]/text()')
     teams = tree.xpath('//table[@id="linescore"]//a/text()')
     game_data = {
         "boxscore_url" : boxscore_url,
-        "week"         : 21 if not week else int(week[0].split('Week ')[1]),
+        "week"         : parse_week_num(week_num),
         "year"         : int(boxscore_url.split('boxscores/')[1][0:4]),
         "away_team"    : teams[0],
         "home_team"    : teams[1]
@@ -45,7 +44,7 @@ def scrape_boxscore(boxscore_url):
 
 
 def scrape_player_stats(name, tree):
-    # Offsensive stats
+    # Offensive stats
     off_stats_row = tree.xpath('//table[@id="skill_stats"]//tr[td/a/text()="' + name + '"]/td')
     off_stats = [0] * 17
     for i in range(2,len(off_stats_row)):
@@ -77,6 +76,32 @@ def scrape_player_stats(name, tree):
             "fmbl":     off_stats[16]
         }
 
+
+def parse_week_num(week_num):
+    if not week_num: # If None type
+        return -1
+    elif is_str_num(week_num):
+        return int(week_num)
+    elif "Wild" in week_num:
+        return 18
+    elif "Division" in week_num:
+        return 19
+    elif "Conf" in week_num:
+        return 20
+    elif "Super" in week_num:
+        return 21
+    else:
+        raise ValueError("num " + week_num + " does not match any category")
+
+
+def is_str_num(s):
+    try:
+        int(s)
+        return True
+    except ValueError:
+        return False
+
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("usage: scrape-player-data.py <year>")
@@ -87,8 +112,11 @@ if __name__ == "__main__":
     page = requests.get(site + '/years/' + year + '/games.htm')
     tree = html.fromstring(page.content)
     boxscore_urls = tree.xpath('//a[text()="boxscore"]/@href')
+    week_nums = tree.xpath('//tr[td/a[text()="boxscore"]/@href]/td[1]/text()')
 
     # Scrape data for each game
-    for boxscore_url in boxscore_urls:
-        print("Scraping boxscore:", boxscore_url)
-        scrape_boxscore(site + boxscore_url)
+    for boxscore_url, week_num in zip(reversed(boxscore_urls),reversed(week_nums)):
+        print("Scraping boxscore: " + site + boxscore_url)
+        scrape_boxscore(site + boxscore_url, week_num)
+
+
