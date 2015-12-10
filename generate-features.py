@@ -1,6 +1,5 @@
 #!/usr/bin/python3.4
 # Generates files with feature featuretors for a specific position
-import sys
 import operator
 from pymongo import MongoClient
 
@@ -13,36 +12,77 @@ def generate_qb_features(player, db):
 
     # Compute statistics at the time of each game on a cumulative/rolling basis
     games = sorted(player['games'], key=operator.itemgetter('year','week'))
-    avg_pyds = games[0]['pyds']
-    avg_rshyds = games[0]['rshyds']
-    avg_pass_pct = games[0]['pcmp'] / games[0]['patt']
-    game_count = 1
-    for game in games[1:]:
-        feature = ""
-
-        # Total number of games played
-        feature += str(game_count) + " "
-        game_count += 1        
-
-        # average passing yards
-        avg_pyds = (avg_pyds + game['pyds']) / 2.
-        feature += str(avg_pyds) + " "
-        
-        # average rushing yards
-        avg_rshyds = (avg_rshyds + game['rshyds']) / 2.
-        feature += str(avg_rshyds) + " "
-
-        # average pass percentage
-        avg_pass_pct = (avg_pass_pct + (game['pcmp'] + game['patt'])) / 2
-        feature += str(avg_pass_pct) + " "
+    for i in range(0,len(games)):
+        if int(games[i]['snapcount']) < 15:  # only consider QBs playing a significant amount
+            continue
+        feature = get_feature_vectors_for_game(games, i)
 
         # Label: fantasy score
-        # TODO - help plz
-        score = int(game['pyds']/25) + game['ptd']*4 - game['pint']*2 + int(game['rshyds']/10) + game['rtd']*6 
-        feature += str(score)
+        score = get_fantasy_score(games[i])
+        feature += format_float2str(score)
         features.append(feature)
     return features
 
+
+# Get the feature vector corresponding to a single game
+def get_feature_vectors_for_game(games, game_index):
+    feature_vector = ""
+    tot_pass_yards = 0
+    tot_pass_attempts = 0
+    tot_pass_completions = 0
+    tot_pass_tds = 0
+    tot_pass_interceptions = 0
+    tot_rush_yards = 0
+    tot_rush_attempts = 0
+    tot_rush_tds = 0
+    tot_fumbles = 0
+    tot_fumbles_lost = 0
+
+    # select the index of the game 6 games before the game at index i
+    start_game = game_index-6 if game_index-6 > 0 else 0
+    num_games_averaging_over = 0
+
+    # Find averages of player's game stats over previous 6 games (if 6 exist)
+    for i in range(start_game, game_index):
+        game = games[i]
+        if int(game['snapcount']) < 15:
+            continue
+
+        num_games_averaging_over += 1
+        tot_pass_yards += game['pass_yards']
+        tot_pass_attempts += game['pass_attempted']
+        tot_pass_completions += game['pass_completed']
+        tot_pass_tds += game['pass_touchdowns']
+        tot_pass_interceptions += game['pass_interceptions']
+        tot_rush_yards += game['rush_yards']
+        tot_rush_attempts += game['rush_attempted']
+        tot_rush_tds += game['rush_touchdowns']
+        tot_fumbles += game['fumbles']
+        tot_fumbles_lost += game['fumbles_lost']
+
+    if num_games_averaging_over == 0 or tot_pass_attempts == 0:  # Avoiding divide by 0 errors
+        num_games_averaging_over = 1
+        tot_pass_attempts = 1
+    feature_vector += format_float2str(tot_pass_completions/tot_pass_attempts) + " "
+    feature_vector += format_float2str(tot_pass_yards/num_games_averaging_over) + " "
+    feature_vector += format_float2str(tot_pass_tds/num_games_averaging_over) + " "
+    feature_vector += format_float2str(tot_pass_interceptions/num_games_averaging_over) + " "
+    feature_vector += format_float2str(tot_rush_yards/num_games_averaging_over) + " "
+    feature_vector += format_float2str(tot_rush_attempts/num_games_averaging_over) + " "
+    feature_vector += format_float2str(tot_rush_tds/num_games_averaging_over) + " "
+    feature_vector += format_float2str(tot_fumbles/num_games_averaging_over) + " "
+    feature_vector += format_float2str(tot_fumbles_lost/num_games_averaging_over) + " "
+    return feature_vector
+
+
+# Function to round a float to 2 decimal places, and return it as a string
+def format_float2str(f):
+    return "{0:.2f}".format(float(str(f)))
+
+
+# Computes the fantasy score for a QB given their game stats
+def get_fantasy_score(game):
+    return game['pass_yards']/25 + 4*game['pass_touchdowns'] + (-2)*game['pass_interceptions'] + game['rush_yards']/10 + 6*game['rush_touchdowns'] + (-2)*game['fumbles_lost']
 
 if __name__ == "__main__":
     # Output file(s)
@@ -53,10 +93,9 @@ if __name__ == "__main__":
     db = conn['football']
     playerClt = db['players']
 
-    for player in playerClt.find():
-        if player['position'] == 'QB':
-            features = generate_qb_features(player, db)
-            for feature in features:
-                qb_file.write(feature + "\n")
+    for player in playerClt.find({"position":"QB"}):
+        features = generate_qb_features(player, db)
+        for feature in features:
+            qb_file.write(feature + "\n")
                 
 

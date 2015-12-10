@@ -35,6 +35,8 @@ def scrape_boxscore(boxscore_url, week_num):
             else:
                 name = name[0]
             position = cols[1].text
+            if position == 'G' or position == 'T' or position == 'C' or position == 'LT' or position == 'RT' or position == 'LG' or position == 'RG':
+                position = 'OL'
             off_snapcount = cols[2].text
             if int(off_snapcount) > 0:
                 player_stats = scrape_player_stats(name, tree)
@@ -57,23 +59,23 @@ def scrape_player_stats(name, tree):
     return \
         {
             "starting": 0 if not starting_lineup_row else 1,
-            "pcmp":     off_stats[0],
-            "patt":     off_stats[1],
-            "pyds":     off_stats[2],
-            "ptd":      off_stats[3],
-            "pint":     off_stats[4],
-            "plng":     off_stats[5],
-            "ratt":     off_stats[6],
-            "rshyds":   off_stats[7],
-            "rtd":      off_stats[8],
-            "rlng":     off_stats[9],
-            "rtgt":     off_stats[10],
-            "rrec":     off_stats[11],
-            "recyds":   off_stats[12],
-            "rectd":    off_stats[13],
-            "reclng":   off_stats[14],
-            "fmb":      off_stats[15],
-            "fmbl":     off_stats[16]
+            "pass_completed":       off_stats[0],
+            "pass_attempted":       off_stats[1],
+            "pass_yards":           off_stats[2],
+            "pass_touchdowns":      off_stats[3],
+            "pass_interceptions":   off_stats[4],
+            "pass_long":            off_stats[5],
+            "rush_attempted":       off_stats[6],
+            "rush_yards":           off_stats[7],
+            "rush_touchdowns":      off_stats[8],
+            "rush_long":            off_stats[9],
+            "rec_targets":          off_stats[10],
+            "rec_receptions":       off_stats[11],
+            "rec_yards":            off_stats[12],
+            "rec_touchdowns":       off_stats[13],
+            "rec_long":             off_stats[14],
+            "fumbles":              off_stats[15],
+            "fumbles_lost":         off_stats[16]
         }
 
 
@@ -115,7 +117,7 @@ if __name__ == "__main__":
     week_nums = tree.xpath('//tr[td/a[text()="boxscore"]/@href]/td[1]/text()')
 
     # Scrape data for each game
-    for boxscore_url, week_num in zip(reversed(boxscore_urls),reversed(week_nums)):
+    for boxscore_url, week_num in zip(boxscore_urls,week_nums):
         print("Scraping boxscore: " + site + boxscore_url)
         scrape_boxscore(site + boxscore_url, week_num)
 
