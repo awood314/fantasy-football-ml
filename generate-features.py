@@ -25,10 +25,23 @@ def generate_qb_features(player, db):
     # Create feature vector for each useful game
     if len(useful_games) > 1:
         for i in range(1, len(useful_games)):
+            game = useful_games[i]
+
+            # Player features
             feature = get_features_player_stats(useful_games, i)
+
+            # Team features
             team_game_index = next(team_games.index(g) for g in team_games
-                               if g['week'] == useful_games[i]['week'] and g['year'] == useful_games[i]['year'])
+                               if g['week'] == game['week'] and g['year'] == game['year'])
             feature += get_features_team_stats(team_games, team_game_index)
+
+            # Opponent features
+            opp = game['away_team'] if game['home_team'] == player['team'] else game['home_team']
+            opp_games = sorted(teamClt.find_one({"team":opp})['games'], key=operator.itemgetter('year','week'))
+            opp_game_index = next(opp_games.index(g) for g in opp_games 
+                                if g['week'] == game['week'] and g['year'] == game['year'])
+            feature += get_features_opp_stats(opp_games, opp_game_index)
+
             # Label: fantasy score
             score = get_fantasy_score(useful_games[i])
 
@@ -68,6 +81,41 @@ def get_features_team_stats(games, game_index):
     feature_vector += format_float2str(team_rush_yards/num_games_averaging_over) + " "
     feature_vector += format_float2str(team_points/num_games_averaging_over) + " "
     feature_vector += format_float2str(team_turnovers/num_games_averaging_over) + " "
+    return feature_vector
+
+# Get the feature vector corresponding to an opponent team's defensive stats
+def get_features_opp_stats(games, game_index):
+    feature_vector = ""
+    points_allowed = 0
+    total_yards_allowed = 0
+    pass_yards_allowed = 0
+    rush_yards_allowed = 0
+    turnovers_forced = 0
+
+    # select the index of the game 6 games before the game at index i, or 0 if negative
+    start_game = game_index-6 if game_index-6 > 0 else 0
+    num_games_averaging_over = 0
+
+    # Find averages of team's game stats over previous 6 games (if 6 exist)
+    for i in range(start_game, game_index):
+        game = games[i]
+
+        num_games_averaging_over += 1
+        points_allowed += game['opponent_points']
+        total_yards_allowed += game['total_yards_allowed']
+        pass_yards_allowed += game['pass_yards_allowed']
+        rush_yards_allowed += game['rush_yards_allowed']
+        turnovers_forced += game['turnovers_forced']
+
+    if num_games_averaging_over == 0:  # Avoiding divide by 0 errors
+        num_games_averaging_over = 1
+
+    feature_vector += format_float2str(points_allowed/num_games_averaging_over) + " "
+    feature_vector += format_float2str(total_yards_allowed/num_games_averaging_over) + " "
+    feature_vector += format_float2str(pass_yards_allowed/num_games_averaging_over) + " "
+    feature_vector += format_float2str(rush_yards_allowed/num_games_averaging_over) + " "
+    feature_vector += format_float2str(turnovers_forced/num_games_averaging_over) + " "
+
     return feature_vector
 
 
