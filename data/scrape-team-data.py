@@ -5,7 +5,7 @@ import requests
 from lxml import html
 from pymongo import MongoClient
 
-def scrape_team_stats(team_year_url):
+def scrape_team_stats(team_year_url, year):
     # Mongodb connection
     conn = MongoClient()
     db = conn['football']
@@ -18,43 +18,29 @@ def scrape_team_stats(team_year_url):
     
     game_logs = tree.xpath('//table[@id="team_gamelogs"]//tr[td[4]/a/@href]')
     for game in game_logs:
-        game_stats = scrap_game_stats(game, team_name)
+        game_stats = scrape_game_stats(game, team_name, year)
         teamClt.update({"team": team_name}, {'$push': {'games': game_stats}}, True)
 
 
-def scrap_game_stats(game_row, team_name):
+def scrape_game_stats(game_row, team_name, year):
     cols = game_row.xpath('td')
     week = parse_week_num(cols[0].text)
 
-    if not cols[4].text: # Check if game has been played or not yet
+    if cols[4].text: # Check if game has been played or not yet
         game_stats = \
             {
                 "week": week,
-                "points": 0,
-                "opponent_points": 0,
-                "total_yards": 0,
-                "pass_yards": 0,
-                "rush_yards": 0,
-                "turnovers": 0,
-                "total_yards_allowed": 0,
-                "pass_yards_allowed": 0,
-                "rush_yards_allowed": 0,
-                "turnovers_forced": 0
-            }
-    else:
-        game_stats = \
-            {
-                "week": week,
-                "points": cols[9].text,
-                "opponent_points": cols[10].text,
-                "total_yards": cols[12].text,
-                "pass_yards": cols[13].text,
-                "rush_yards": cols[14].text,
-                "turnovers": '0' if not cols[15].text else cols[15].text,
-                "total_yards_allowed": cols[17].text,
-                "pass_yards_allowed": cols[18].text,
-                "rush_yards_allowed": cols[19].text,
-                "turnovers_forced": '0' if not cols[20].text else cols[20].text
+                "year": year,
+                "points": int(cols[9].text),
+                "opponent_points": int(cols[10].text),
+                "total_yards": int(cols[12].text),
+                "pass_yards": int(cols[13].text),
+                "rush_yards": int(cols[14].text),
+                "turnovers": 0 if not cols[15].text else int(cols[15].text),
+                "total_yards_allowed": int(cols[17].text),
+                "pass_yards_allowed": int(cols[18].text),
+                "rush_yards_allowed": int(cols[19].text),
+                "turnovers_forced": 0 if not cols[20].text else int(cols[20].text)
             }
     return game_stats
 
@@ -98,4 +84,4 @@ if __name__ == "__main__":
     for team_url in team_urls:
         for year in range(min_year, 2015):
             print("scraping team stats: " + site + team_url + str(year) + '.htm')
-            scrape_team_stats(site + team_url + str(year) + '.htm')
+            scrape_team_stats(site + team_url + str(year) + '.htm', year)
