@@ -105,20 +105,16 @@ def is_str_num(s):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("usage: scrape-player-data.py <year>")
-    
-    # Get the boxscore Urls for specified year
-    year = sys.argv[1]
-    site = 'http://www.pro-football-reference.com'
-    page = requests.get(site + '/years/' + year + '/games.htm')
-    tree = html.fromstring(page.content)
-    boxscore_urls = tree.xpath('//a[text()="boxscore"]/@href')
-    week_nums = tree.xpath('//tr[td/a[text()="boxscore"]/@href]/td[1]/text()')
+     for year in range(2014,2015):
+        site = 'http://www.pro-football-reference.com'
+        page = requests.get(site + '/years/' + str(year) + '/games.htm')
+        tree = html.fromstring(page.content)
+        boxscore_urls = tree.xpath('//a[text()="boxscore"]/@href')
+        week_nums = tree.xpath('//tr[td/a[text()="boxscore"]/@href]/td[1]/text()')
 
-    # Scrape data for each game
-    for boxscore_url, week_num in zip(boxscore_urls,week_nums):
-        print("Scraping boxscore: " + site + boxscore_url)
-        scrape_boxscore(site + boxscore_url, week_num)
+        # Scrape data for each game
+        for boxscore_url, week_num in zip(boxscore_urls,week_nums):
+            print("Scraping boxscore: " + site + boxscore_url)
+            scrape_boxscore(site + boxscore_url, week_num)
 
 
