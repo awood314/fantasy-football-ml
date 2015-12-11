@@ -24,76 +24,32 @@ University of California, Los Angeles \\
 \end{abstract}
 
 \section{Motivation}
-NFL Fantasy Football has become a national sensation in the community of sports gambling and betting.  With one-week fantasy sites like FanDuel and DraftKings cashing out millions of dollars in winnings per week, it is economically valuable to predict the outcome of individual players’ statistics in a game. It is also an interesting challenge to create mathematical models of human strategy and physical ability, as well as attempt to overcome the seemingly inherent randomness of the sport.
+NFL Fantasy Football has become a national sensation in the community of sports gambling and betting.  With one-week fantasy sites like FanDuel and DraftKings cashing out millions of dollars in winnings per week, it is economically valuable to predict the outcome of individual players' statistics in a game. It is also an interesting challenge to create mathematical models of human strategy and physical ability, as well as attempt to overcome the seemingly inherent randomness of the sport.
 
 \section{Background}
-There are expert analysts and machine learning techniques that have been developed that attempt to predict the outcome of games \cite{Cornell}. There are also attempts to predict fantasy scores using machine learning \cite{UMASS}. While these approaches have proven to be successful, our proposed project will attempt to discover a number of different features than those used in the previous work. We include fine grain teammate statistics, as well as the opponent team’s average defensive statistics.
+There are expert analysts and machine learning techniques that have been developed that attempt to predict the outcome of games \cite{Cornell}. There are also attempts to predict fantasy scores using machine learning \cite{UMASS}. While these approaches have proven to be successful, our proposed project will attempt to discover a number of different features than those used in the previous work. We include fine grain teammate statistics, as well as the opponent team's average defensive statistics.
+
+\section{Data}
+All of the football statistics that we needed could be found for free on http://www.pro-football-reference.com. We wrote a scraper to collect all game data from 2011-2014 for every active franchise during those years. Data included statistics about individual players, and statistics for the team as a whole. After storing the data into a MongoDB NoSQL database, we used it to generate feature vectors based on our domain-specific knowledge. 
+
+Each label represents a player's fantasy score for a single game, which is a simple and standardized function of the player's individual performance of that game. Based on this, we selected the following set of features that could be computed before the game is played. These features include average the respective player's average performance over the past 6 games, as well as the average performance over the entire season, up to this game. These performance measures are specfic to the player position, thus we have different sets of features for different positions. For this project, we limited these positions to Quarterback, Running Back, and Wide Receiver, since these are the positions that primarily obtain fantasy points.
+
+The team statistics, on the other hand, are a collective performance measure for an entire team, and the features remain consistent, regardless of the position of the player that the feature vector represents. 
+
+0
+
+This data is interesting because it takes into account the teammates of a player we are trying to predict, in addition to the opponent's defensive stats. 
 
 \section{Methods}
 
 \section{Evaluation}
 We can evaluate the average squared error difference between our predictions and fantasy scores from past games via cross-validation, as well as attempt to predict future scores of the current season. Additionally, there is a plethora of expert fantasy predictions that we will compare our predictions to, namely NFL.com fantasy, Yahoo fantasy, CBS fantasy, and FFtoday.com. It may also be worthwhile to compare the average success of models trained for different player positions, as well as the comparison of success in different contexts, such as a comparison of predictions for players that play frequently versus players that do not.
-
-\section{Data}
-The data needed to construct our feature set can be found from the following websites for free:
-\begin{itemize}
-\item
-http://www.pro-football-reference.com
-\item
-http://www.footballdb.com
-\end{itemize}
-
-Our initial data points will include various statistics derived from past games played by players in both teams lineups, and the labels will be the fantasy scores, which are computed by various data of the current game, using standard NFL fantasy scoring. By training a new model for each position, we should be able to separately predict the fantasy points for Quarterbacks, Running Backs, and Wide Receivers.
-
-The following are a set of example features that we predict will have some correlation to the fantasy score a given player gets:
-\begin{itemize}
-\item
-Player in starting lineup or not
-\item
-Player average snap count per game
-\item
-Quarterback pass yards per game
-\item
-Quarterback touchdowns per game
-\item
-Running Back rush yards per game
-\item
-Running Back rush touchdowns per game
-\item
-Running Back receiving yards per game
-\item
-Running Back receiving touchdowns per game
-\item
-Wide Receiver receiving yards per game
-\item
-Wide Receiver receiving touchdowns per game
-\item
-Opponent pass yards allowed per game
-\item
-Opponent rush yards allowed per game
-\item
-Opponent receiving yards allowed per game
-\item
-Opponent pass touchdowns allowed per game
-\item
-Opponent rush touchdowns allowed per game
-\item
-Opponent interceptions per game
-\item
-Opponent sacks per game
-\item
-Opponent defensive rank
-\end{itemize}
-
-These features will be the averages for all games before the current one. For the first game of the year, the previous year’s averages will be used.
-
-This data is interesting because it takes into account the teammate’s of a player we are trying to predict, in addition to the opponent’s defensive stats. We believe these will provide more insight into a predictive model of player fantasy performance.
-
 \section{Software Tools}
 Our primarly language for extracting and generating data is Python, and the supervised learning models used in our methods are from the scikit-learn Python library. 
 
 \section{Future Work}
 Predicting fantasy score of players with no previous games by using college statistics.
+More features or more complex models
 
 \begin{thebibliography}{1}
 
